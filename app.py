@@ -1,0 +1,463 @@
+from flask import Flask, render_template, request, session, send_file
+import pickle
+import pandas as pd
+from pathlib import Path
+from io import BytesIO
+from datetime import datetime
+import os
+
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
+
+MODEL_PATH = Path("food_price_model.pkl")
+HISTORY_SESSION_KEY = "prediction_history"
+MAX_HISTORY_ITEMS = 200
+
+try:
+    with MODEL_PATH.open("rb") as model_file:
+        model = pickle.load(model_file)
+except FileNotFoundError:
+    model = None
+
+CATEGORY_OPTIONS = [
+    "cereals and tubers",
+    "meat, fish and eggs",
+    "miscellaneous food",
+    "oil and fats",
+    "pulses and nuts",
+    "vegetables and fruits",
+]
+
+COMMODITY_OPTIONS = [
+    "Anchovies",
+    "Bananas (lakatan)",
+    "Bananas (latundan)",
+    "Bananas (saba)",
+    "Beans (green, fresh)",
+    "Beans (mung)",
+    "Beans (string)",
+    "Bitter melon",
+    "Bottle gourd",
+    "Cabbage",
+    "Cabbage (chinese)",
+    "Calamansi",
+    "Carrots",
+    "Chicken",
+    "Choko",
+    "Coconut",
+    "Crab",
+    "Eggplants",
+    "Eggs",
+    "Eggs (duck)",
+    "Fish (fresh)",
+    "Fish (frigate tuna)",
+    "Fish (mackerel, fresh)",
+    "Fish (milkfish)",
+    "Fish (redbelly yellowtail fusilier)",
+    "Fish (roundscad)",
+    "Fish (slipmouth)",
+    "Fish (threadfin bream)",
+    "Fish (tilapia)",
+    "Garlic",
+    "Garlic (large)",
+    "Garlic (small)",
+    "Ginger",
+    "Groundnuts (shelled)",
+    "Groundnuts (unshelled)",
+    "Maize (white)",
+    "Maize (yellow)",
+    "Maize flour (white)",
+    "Maize flour (yellow)",
+    "Mandarins",
+    "Mangoes (carabao)",
+    "Mangoes (piko)",
+    "Meat (beef)",
+    "Meat (beef, chops with bones)",
+    "Meat (chicken, whole)",
+    "Meat (pork)",
+    "Meat (pork, hock)",
+    "Meat (pork, with bones)",
+    "Meat (pork, with fat)",
+    "Oil (cooking)",
+    "Onions (red)",
+    "Onions (white)",
+    "Papaya",
+    "Pineapples",
+    "Potatoes (Irish)",
+    "Rice (milled, superior)",
+    "Rice (paddy)",
+    "Rice (premium)",
+    "Rice (regular, milled)",
+    "Rice (special)",
+    "Rice (well milled)",
+    "Semolina (white)",
+    "Semolina (yellow)",
+    "Shrimp (endeavor)",
+    "Shrimp (tiger)",
+    "Squashes",
+    "Sugar (brown)",
+    "Sugar (white)",
+    "Sweet Potato leaves",
+    "Sweet potatoes",
+    "Taro",
+    "Tomatoes",
+    "Water spinach",
+]
+
+CATEGORY_COMMODITY_MAP = {
+    "cereals and tubers": [
+        "Maize (white)",
+        "Maize (yellow)",
+        "Maize flour (white)",
+        "Maize flour (yellow)",
+        "Potatoes (Irish)",
+        "Rice (milled, superior)",
+        "Rice (paddy)",
+        "Rice (premium)",
+        "Rice (regular, milled)",
+        "Rice (special)",
+        "Rice (well milled)",
+        "Semolina (white)",
+        "Semolina (yellow)",
+        "Sweet potatoes",
+        "Taro",
+    ],
+    "meat, fish and eggs": [
+        "Anchovies",
+        "Chicken",
+        "Crab",
+        "Eggs",
+        "Eggs (duck)",
+        "Fish (fresh)",
+        "Fish (frigate tuna)",
+        "Fish (mackerel, fresh)",
+        "Fish (milkfish)",
+        "Fish (redbelly yellowtail fusilier)",
+        "Fish (roundscad)",
+        "Fish (slipmouth)",
+        "Fish (threadfin bream)",
+        "Fish (tilapia)",
+        "Meat (beef)",
+        "Meat (beef, chops with bones)",
+        "Meat (chicken, whole)",
+        "Meat (pork)",
+        "Meat (pork, hock)",
+        "Meat (pork, with bones)",
+        "Meat (pork, with fat)",
+        "Shrimp (endeavor)",
+        "Shrimp (tiger)",
+    ],
+    "miscellaneous food": [
+        "Coconut",
+        "Sugar (brown)",
+        "Sugar (white)",
+    ],
+    "oil and fats": [
+        "Oil (cooking)",
+    ],
+    "pulses and nuts": [
+        "Beans (green, fresh)",
+        "Beans (mung)",
+        "Beans (string)",
+        "Groundnuts (shelled)",
+        "Groundnuts (unshelled)",
+    ],
+    "vegetables and fruits": [
+        "Bananas (lakatan)",
+        "Bananas (latundan)",
+        "Bananas (saba)",
+        "Bitter melon",
+        "Bottle gourd",
+        "Cabbage",
+        "Cabbage (chinese)",
+        "Calamansi",
+        "Carrots",
+        "Choko",
+        "Garlic",
+        "Garlic (large)",
+        "Garlic (small)",
+        "Ginger",
+        "Mandarins",
+        "Mangoes (carabao)",
+        "Mangoes (piko)",
+        "Onions (red)",
+        "Onions (white)",
+        "Papaya",
+        "Pineapples",
+        "Squashes",
+        "Sweet Potato leaves",
+        "Tomatoes",
+        "Water spinach",
+    ],
+}
+
+
+def get_commodity_options(category):
+    if category in CATEGORY_COMMODITY_MAP:
+        return CATEGORY_COMMODITY_MAP[category]
+    return []
+
+REGION_OPTIONS = [
+    "Autonomous region in Muslim Mindanao",
+    "Cordillera Administrative region",
+    "National Capital region",
+    "Region I",
+    "Region II",
+    "Region III",
+    "Region IV-A",
+    "Region IV-B",
+    "Region IX",
+    "Region V",
+    "Region VI",
+    "Region VII",
+    "Region VIII",
+    "Region X",
+    "Region XI",
+    "Region XII",
+    "Region XIII",
+]
+
+REGION_COORDINATES = {
+    "Autonomous region in Muslim Mindanao": (6.0, 121.0),
+    "Cordillera Administrative region": (17.4, 121.3),
+    "National Capital region": (14.6, 121.0),
+    "Region I": (16.0, 120.3),
+    "Region II": (17.3, 121.8),
+    "Region III": (15.4, 120.8),
+    "Region IV-A": (14.1, 121.2),
+    "Region IV-B": (12.3, 118.5),
+    "Region IX": (8.5, 122.8),
+    "Region V": (13.3, 123.5),
+    "Region VI": (10.7, 122.5),
+    "Region VII": (10.3, 123.9),
+    "Region VIII": (11.0, 125.0),
+    "Region X": (8.4, 124.6),
+    "Region XI": (7.3, 126.1),
+    "Region XII": (6.5, 124.8),
+    "Region XIII": (8.8, 125.7),
+}
+
+REGION_MARKET_MAP = {
+    "Autonomous region in Muslim Mindanao": "Basilan",
+    "Cordillera Administrative region": "Baguio City",
+    "National Capital region": "Metro Manila",
+    "Region I": "La Union (Ilocos Region)",
+    "Region II": "Isabela",
+    "Region III": "Pampanga",
+    "Region IV-A": "Laguna",
+    "Region IV-B": "Palawan",
+    "Region IX": "Zamboanga City",
+    "Region V": "Albay",
+    "Region VI": "Iloilo City",
+    "Region VII": "Cebu City",
+    "Region VIII": "Tacloban City",
+    "Region X": "Cagayan de Oro City",
+    "Region XI": "Davao City",
+    "Region XII": "Cotabato City",
+    "Region XIII": "Butuan City",
+}
+
+MONTH_OPTIONS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
+
+
+def get_month_name(month_number):
+    try:
+        month_value = int(month_number)
+    except (TypeError, ValueError):
+        return ""
+
+    if 1 <= month_value <= 12:
+        return MONTH_OPTIONS[month_value - 1]
+    return ""
+
+
+def render_home(**context):
+    selected_category = context.get("selected_category", "")
+    context.setdefault("prediction_history", get_prediction_history())
+    return render_template(
+        "index.html",
+        category_options=CATEGORY_OPTIONS,
+        commodity_options=get_commodity_options(selected_category),
+        category_commodity_map=CATEGORY_COMMODITY_MAP,
+        region_options=REGION_OPTIONS,
+        month_options=MONTH_OPTIONS,
+        **context,
+    )
+
+
+def get_prediction_history():
+    history = session.get(HISTORY_SESSION_KEY, [])
+    if isinstance(history, list):
+        return history
+    return []
+
+
+def append_prediction_history(entry):
+    history = get_prediction_history()
+    history.append(entry)
+    session[HISTORY_SESSION_KEY] = history[-MAX_HISTORY_ITEMS:]
+    session.modified = True
+
+
+def parse_int_field(form_data, field_name):
+    raw_value = form_data.get(field_name, "").strip()
+    if not raw_value:
+        raise ValueError(f"{field_name.capitalize()} is required")
+    try:
+        return int(raw_value)
+    except ValueError as error:
+        raise ValueError(f"{field_name.capitalize()} must be a valid number") from error
+
+
+def get_required_field(form_data, field_name):
+    value = form_data.get(field_name, "").strip()
+    if not value:
+        raise ValueError(f"{field_name.capitalize()} is required")
+    return value
+
+@app.route('/')
+def home():
+    return render_home(
+        prediction=None,
+        error_message=None,
+        selected_category="",
+        selected_commodity="",
+        selected_region="",
+        selected_year="",
+        selected_month="",
+        selected_month_name="",
+        prediction_history=get_prediction_history(),
+    )
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    category = request.form.get('category', '')
+    commodity = request.form.get('commodity', '')
+    region = request.form.get('region', '')
+    year = request.form.get('year', '')
+    month = request.form.get('month', '')
+
+    try:
+        if model is None:
+            raise ValueError("Model file not found. Train the model first using train_model.py")
+
+        category = get_required_field(request.form, 'category')
+        commodity = get_required_field(request.form, 'commodity')
+        region = get_required_field(request.form, 'region')
+        year = parse_int_field(request.form, 'year')
+        month = parse_int_field(request.form, 'month')
+
+        if region not in REGION_COORDINATES or region not in REGION_MARKET_MAP:
+            raise ValueError("Selected region is not supported")
+
+        if category not in CATEGORY_COMMODITY_MAP:
+            raise ValueError("Selected category is not supported")
+
+        if commodity not in CATEGORY_COMMODITY_MAP[category]:
+            raise ValueError("Selected commodity does not match selected category")
+
+        if month < 1 or month > 12:
+            raise ValueError("Month must be between 1 and 12")
+
+        latitude, longitude = REGION_COORDINATES[region]
+        market = REGION_MARKET_MAP[region]
+
+        input_data = pd.DataFrame([{
+            'admin1': region,
+            'category': category,
+            'commodity': commodity,
+            'market': market,
+            'latitude': latitude,
+            'longitude': longitude,
+            'year': year,
+            'month': month
+        }])
+
+        prediction = model.predict(input_data)[0]
+        prediction_value = round(prediction, 2)
+        selected_month_name = get_month_name(month)
+        append_prediction_history(
+            {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "category": category,
+                "commodity": commodity,
+                "region": region,
+                "year": year,
+                "month": selected_month_name,
+                "predicted_price": prediction_value,
+            }
+        )
+        error_message = None
+    except ValueError as error:
+        prediction_value = None
+        selected_month_name = get_month_name(month)
+        error_message = str(error)
+
+    return render_home(
+        prediction=prediction_value,
+        error_message=error_message,
+        selected_category=category,
+        selected_commodity=commodity,
+        selected_region=region,
+        selected_year=year,
+        selected_month=month,
+        selected_month_name=selected_month_name,
+        prediction_history=get_prediction_history(),
+    )
+
+
+@app.route('/export-predictions')
+def export_predictions():
+    prediction_history = get_prediction_history()
+    if not prediction_history:
+        return render_home(
+            prediction=None,
+            error_message="No predictions available to export yet.",
+            selected_category="",
+            selected_commodity="",
+            selected_region="",
+            selected_year="",
+            selected_month="",
+            selected_month_name="",
+            prediction_history=[],
+        )
+
+    export_data = pd.DataFrame(
+        [
+            {
+                "Timestamp": item.get("timestamp", ""),
+                "Category": item.get("category", ""),
+                "Commodity": item.get("commodity", ""),
+                "Region": item.get("region", ""),
+                "Year": item.get("year", ""),
+                "Month": item.get("month", ""),
+                "Predicted Price": item.get("predicted_price", ""),
+            }
+            for item in prediction_history
+        ]
+    )
+
+    csv_bytes = export_data.to_csv(index=False).encode("utf-8-sig")
+    filename = f"prediction_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return send_file(
+        BytesIO(csv_bytes),
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+if __name__ == "__main__":
+    app.run(debug=True)

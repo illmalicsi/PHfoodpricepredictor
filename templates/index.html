@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Price Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:            #080d12;
+            --surface:       #0e1720;
+            --surface-2:     #131f2b;
+            --surface-3:     rgba(255,255,255,0.04);
+            --border:        rgba(180,210,235,0.10);
+            --border-hover:  rgba(180,210,235,0.22);
+            --text:          #e8f2fa;
+            --text-2:        #8fa8be;
+            --text-3:        #5c7a94;
+            --gold:          #f0b86a;
+            --gold-dim:      rgba(240,184,106,0.14);
+            --teal:          #4dd8c8;
+            --teal-dim:      rgba(77,216,200,0.12);
+            --red-dim:       rgba(255,100,100,0.12);
+            --red-border:    rgba(255,100,100,0.3);
+            --radius-xl:     24px;
+            --radius-lg:     16px;
+            --radius-md:     11px;
+            --radius-sm:     8px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(ellipse 60% 50% at 10% 0%, rgba(240,184,106,0.09) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 90% 15%, rgba(77,216,200,0.09) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 60% at 50% 100%, rgba(77,100,200,0.06) 0%, transparent 60%);
+            min-height: 100vh;
+            padding: 28px 18px 48px;
+            overflow-x: hidden;
+        }
+
+        /* ── NOISE GRAIN ─────────────────────── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+            background-size: 180px;
+        }
+
+        /* ── LAYOUT ──────────────────────────── */
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1180px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .top {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* ── HERO ────────────────────────────── */
+        .hero {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            position: relative;
+            overflow: hidden;
+            min-height: 560px;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; right: -60px;
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(240,184,106,0.18) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            color: var(--gold);
+            background: var(--gold-dim);
+            border: 1px solid rgba(240,184,106,0.2);
+            border-radius: 999px;
+            padding: 5px 12px;
+            width: fit-content;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--gold);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.45; transform: scale(0.75); }
+        }
+
+        .hero-headline {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: clamp(2.2rem, 3.5vw, 3.6rem);
+            font-weight: 400;
+            line-height: 1.05;
+            letter-spacing: -0.015em;
+            color: var(--text);
+        }
+
+        .hero-headline em {
+            font-style: italic;
+            color: var(--gold);
+        }
+
+        .hero-body {
+            font-size: 14px;
+            color: var(--text-2);
+            line-height: 1.75;
+            max-width: 30ch;
+        }
+
+        .stat-grid {
+            margin-top: auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 14px 12px;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--border-hover); }
+
+        .stat-card strong {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stat-card span {
+            display: block;
+            margin-top: 3px;
+            font-size: 11.5px;
+            color: var(--text-3);
+            line-height: 1.4;
+        }
+
+        /* ── PANEL ───────────────────────────── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .panel-header {
+            margin-bottom: 24px;
+        }
+
+        .panel h2 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.75rem;
+            font-weight: 400;
+            color: var(--text);
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            margin-top: 6px;
+            font-size: 13.5px;
+            color: var(--text-3);
+        }
+
+        /* ── FORM ────────────────────────────── */
+        form { display: flex; flex-direction: column; gap: 16px; }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+
+        .field-grid { display: flex; flex-direction: column; gap: 16px; }
+
+        .grid-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: var(--text-2);
+        }
+
+        .select-wrap { position: relative; }
+
+        .select-wrap::after {
+            content: '';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            width: 7px; height: 7px;
+            border-right: 1.5px solid var(--text-3);
+            border-bottom: 1.5px solid var(--text-3);
+            transform: translateY(-65%) rotate(45deg);
+            pointer-events: none;
+            transition: border-color 0.2s;
+        }
+
+        select,
+        input[type="number"] {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        select { padding-right: 36px; cursor: pointer; }
+
+        select option { background: #1a2b38; color: var(--text); }
+
+        select:focus,
+        input[type="number"]:focus {
+            border-color: rgba(77,216,200,0.5);
+            box-shadow: 0 0 0 3px var(--teal-dim);
+            background: #101e2a;
+        }
+
+        select:hover:not(:disabled),
+        input[type="number"]:hover {
+            border-color: var(--border-hover);
+        }
+
+        select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        input[type="number"]::placeholder { color: var(--text-3); }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+        /* ── ACTIONS ─────────────────────────── */
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .hint {
+            font-size: 12.5px;
+            color: var(--text-3);
+            max-width: 38ch;
+            line-height: 1.55;
+        }
+
+        button[type="submit"] {
+            flex-shrink: 0;
+            height: 44px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #f5c470, #e8924a);
+            border: none;
+            border-radius: 999px;
+            color: #1a0e00;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 20px rgba(240,160,80,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 28px rgba(240,160,80,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+            filter: brightness(1.05);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(240,160,80,0.2);
+        }
+
+        /* ── RESULT ──────────────────────────── */
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            background: var(--gold-dim);
+            border: 1px solid rgba(240,184,106,0.25);
+            animation: fadeIn 0.35s ease both;
+        }
+
+        .result.error {
+            background: var(--red-dim);
+            border-color: var(--red-border);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        .result-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .result.error .result-label { color: #ff8a8a; }
+
+        .result-value {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 2.4rem;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .result-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        /* ── SUMMARY STAGE ───────────────────── */
+        .summary-stage {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 28px 32px;
+            animation: fadeIn 0.4s ease both;
+        }
+
+        .summary-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .summary-tools {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(77,216,200,0.3);
+            background: var(--teal-dim);
+            color: var(--teal);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            transition: transform 0.15s, border-color 0.15s, background 0.15s;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(77,216,200,0.46);
+            background: rgba(77,216,200,0.18);
+        }
+
+        .summary-head h3 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.45rem;
+            font-weight: 400;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .summary-head p {
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .history-wrap {
+            overflow-x: auto;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 100%;
+        }
+
+        .history-table {
+            width: 100%;
+            min-width: 860px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .history-table thead th {
+            text-align: left;
+            padding: 11px 12px;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            background: #102231;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .history-table tbody td {
+            padding: 12px;
+            color: var(--text);
+            background: var(--surface-2);
+            border-top: 1px solid var(--border);
+            line-height: 1.45;
+            white-space: nowrap;
+        }
+
+        .history-table tbody tr:hover td {
+            background: #111e2c;
+        }
+
+        .history-table .price-cell {
+            color: var(--gold);
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.12rem;
+            font-weight: 400;
+        }
+
+        /* ── RESPONSIVE ──────────────────────── */
+        @media (max-width: 960px) {
+            .top { grid-template-columns: 1fr; }
+            .hero { min-height: auto; }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 16px 12px 36px; }
+            .hero, .panel { padding: 24px 20px; }
+            .summary-stage { padding: 22px 20px; }
+            .stat-grid { grid-template-columns: 1fr 1fr; }
+            .grid-two { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; align-items: stretch; }
+            button[type="submit"] { width: 100%; justify-content: center; }
+            .summary-tools { width: 100%; }
+            .export-btn { width: 100%; }
+        }
+
+        @media (max-width: 400px) {
+            .stat-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="top">
+
+            <section class="hero">
+                <div class="eyebrow">Food Price Predictor</div>
+
+                <h1 class="hero-headline">
+                    Forecast<br>
+                    prices with<br>
+                    <em>confidence.</em>
+                </h1>
+
+                <p class="hero-body">
+                    Pick category, commodity, region, and date to run your model prediction.
+                    Accurate. Fast. Built for real decisions.
+                </p>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <strong>5 Inputs</strong>
+                        <span>Quick form completion</span>
+                    </div>
+                    <div class="stat-card">
+                        <strong>Adaptive</strong>
+                        <span>Works on all devices</span>
+                    </div>
+                    <div class="stat-card">
+                        <strong>Instant</strong>
+                        <span>Result on submit</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Run prediction</h2>
+                    <p class="subtitle">Submit your inputs to get a model-based price estimate.</p>
+                </div>
+
+                <form action="/predict" method="post">
+                    <div class="field-grid">
+
+                        <div class="field">
+                            <label for="category">Category</label>
+                            <div class="select-wrap">
+                                <select id="category" name="category" required>
+                                    <option value="" disabled {% if not selected_category %}selected{% endif %}>Choose a category</option>
+                                    {% for option in category_options %}
+                                        <option value="{{ option }}" {% if selected_category == option %}selected{% endif %}>{{ option }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="commodity">Commodity</label>
+                            <div class="select-wrap">
+                                <select id="commodity" name="commodity" required {% if not selected_category %}disabled{% endif %}>
+                                    <option value="" disabled {% if not selected_commodity %}selected{% endif %}>Choose a commodity</option>
+                                    {% for option in commodity_options %}
+                                        <option value="{{ option }}" {% if selected_commodity == option %}selected{% endif %}>{{ option }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="region">Region</label>
+                            <div class="select-wrap">
+                                <select id="region" name="region" required>
+                                    <option value="" disabled {% if not selected_region %}selected{% endif %}>Choose a region</option>
+                                    {% for option in region_options %}
+                                        <option value="{{ option }}" {% if selected_region == option %}selected{% endif %}>{{ option }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid-two">
+                            <div class="field">
+                                <label for="year">Year</label>
+                                <input id="year" type="number" name="year" step="1" placeholder="e.g. 2026" value="{{ selected_year }}" required>
+                            </div>
+                            <div class="field">
+                                <label for="month">Month</label>
+                                <div class="select-wrap">
+                                    <select id="month" name="month" required>
+                                        <option value="" disabled {% if not selected_month %}selected{% endif %}>Choose a month</option>
+                                        {% for option in month_options %}
+                                            <option value="{{ loop.index }}" {% if selected_month|string == loop.index|string %}selected{% endif %}>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="actions">
+                        <p class="hint">Tip: match commodity and category carefully for the most accurate output.</p>
+                        <button type="submit">Predict price →</button>
+                    </div>
+                </form>
+
+                {% if error_message %}
+                    <div class="result error">
+                        <div class="result-label">Input error</div>
+                        <div class="result-note">{{ error_message }}</div>
+                    </div>
+                {% endif %}
+
+                {% if prediction is not none %}
+                    <div class="result">
+                        <div class="result-label">Predicted price</div>
+                        <div class="result-value">{{ prediction }}</div>
+                        <div class="result-note">Model output rounded to two decimal places.</div>
+                    </div>
+                {% endif %}
+            </section>
+
+        </div>
+
+        {% if prediction_history %}
+            <section class="summary-stage">
+                <div class="summary-head">
+                    <h3>Prediction summary</h3>
+                    <div class="summary-tools">
+                        <p>History is retained while you keep running predictions.</p>
+                        <a class="export-btn" href="/export-predictions">Export CSV (Excel)</a>
+                    </div>
+                </div>
+
+                <div class="history-wrap">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Timestamp</th>
+                                <th>Category</th>
+                                <th>Commodity</th>
+                                <th>Region</th>
+                                <th>Year</th>
+                                <th>Month</th>
+                                <th>Predicted Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in prediction_history|reverse %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ item.timestamp }}</td>
+                                    <td>{{ item.category }}</td>
+                                    <td>{{ item.commodity }}</td>
+                                    <td>{{ item.region }}</td>
+                                    <td>{{ item.year }}</td>
+                                    <td>{{ item.month }}</td>
+                                    <td class="price-cell">{{ item.predicted_price }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        {% endif %}
+
+    </main>
+
+    <script id="category-commodity-map" type="application/json">{{ category_commodity_map | tojson }}</script>
+    <script>
+        const categoryCommodityMap = JSON.parse(document.getElementById('category-commodity-map').textContent);
+        const categorySelect = document.getElementById('category');
+        const commoditySelect = document.getElementById('commodity');
+
+        function populateCommodityOptions(category) {
+            const commodities = categoryCommodityMap[category] || [];
+            const previousValue = commoditySelect.value;
+
+            commoditySelect.innerHTML = '';
+
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = 'Choose a commodity';
+            placeholderOption.disabled = true;
+            placeholderOption.selected = true;
+            commoditySelect.appendChild(placeholderOption);
+
+            commodities.forEach((commodity) => {
+                const option = document.createElement('option');
+                option.value = commodity;
+                option.textContent = commodity;
+                if (commodity === previousValue) {
+                    option.selected = true;
+                    placeholderOption.selected = false;
+                }
+                commoditySelect.appendChild(option);
+            });
+
+            commoditySelect.disabled = commodities.length === 0;
+        }
+
+        categorySelect.addEventListener('change', (event) => {
+            populateCommodityOptions(event.target.value);
+        });
+
+        populateCommodityOptions(categorySelect.value);
+    </script>
+</body>
+</html>
