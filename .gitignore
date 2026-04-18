@@ -25,6 +25,7 @@ flask_session/
 # Tooling/OS files
 .vscode/
 .idea/
+.vercel/
 .DS_Store
 Thumbs.db
 
