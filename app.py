@@ -501,6 +501,12 @@ def build_trend_chart_data_uri(history, category, commodity, region, prediction_
     buffer.seek(0)
     return "data:image/png;base64," + base64.b64encode(buffer.read()).decode("ascii")
 
+
+@app.route('/favicon.ico')
+@app.route('/favicon.png')
+def favicon():
+    return "", 204
+
 @app.route('/')
 def home():
     return render_home(
