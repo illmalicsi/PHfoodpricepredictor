@@ -1,0 +1,4 @@
+food_price_model.pkl
+.venv/
+__pycache__/
+*.pyc
