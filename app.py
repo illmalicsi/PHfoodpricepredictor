@@ -18,12 +18,14 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 MODEL_PATH = Path(__file__).resolve().parent / "food_price_model.pkl"
 HISTORY_SESSION_KEY = "prediction_history"
 MAX_HISTORY_ITEMS = 200
+MODEL_LOAD_ERROR = ""
 
 try:
     with MODEL_PATH.open("rb") as model_file:
         model = pickle.load(model_file)
-except FileNotFoundError:
+except (FileNotFoundError, pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError) as error:
     model = None
+    MODEL_LOAD_ERROR = str(error)
 
 CATEGORY_OPTIONS = [
     "cereals and tubers",
@@ -361,6 +363,11 @@ def build_prediction_input(category, commodity, region, year, month):
 
 def predict_price_for_inputs(category, commodity, region, year, month):
     if model is None:
+        if MODEL_LOAD_ERROR:
+            raise ValueError(
+                f"Model file is unavailable or invalid ({MODEL_LOAD_ERROR}). "
+                "Ensure food_price_model.pkl is a valid pickle file in deployment."
+            )
         raise ValueError("Model file not found. Train the model first using train_model.py")
 
     input_data = build_prediction_input(category, commodity, region, year, month)
