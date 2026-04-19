@@ -178,6 +178,13 @@
             transition: border-color 0.15s, color 0.15s, background 0.15s;
         }
 
+        .theme-toggle {
+            width: 36px;
+            padding: 0;
+            font-size: 16px;
+            line-height: 1;
+        }
+
         .theme-toggle:hover,
         .nav-toggle:hover {
             border-color: var(--border-hover);
@@ -951,7 +958,7 @@
                 <span>Prediction, trends, and what-if analysis</span>
             </div>
             <div class="nav-actions">
-                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light and dark mode">Dark</button>
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch theme">🌙</button>
                 <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">☰</button>
             </div>
             <div class="nav-links" id="nav-links">
@@ -1298,9 +1305,11 @@
                 return;
             }
 
-            const modeLabel = theme === 'light' ? 'Light' : 'Dark';
-            themeToggle.textContent = modeLabel;
-            themeToggle.setAttribute('aria-label', `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`);
+            const currentIcon = theme === 'light' ? '☀' : '🌙';
+            const nextModeLabel = theme === 'light' ? 'dark' : 'light';
+            themeToggle.textContent = currentIcon;
+            themeToggle.setAttribute('aria-label', `Switch to ${nextModeLabel} mode`);
+            themeToggle.setAttribute('title', `Switch to ${nextModeLabel} mode`);
         }
 
         const storedTheme = localStorage.getItem(themeStorageKey);
