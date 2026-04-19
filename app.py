@@ -6,7 +6,6 @@ from pathlib import Path
 from io import BytesIO
 from datetime import datetime
 import os
-import tempfile
 from urllib import request as urllib_request
 from urllib.parse import urlparse
 
@@ -44,24 +43,23 @@ def maybe_download_model_from_url():
     if parsed_url.scheme not in {"http", "https"}:
         raise ValueError(f"{MODEL_URL_ENV} must be an http(s) URL")
 
-    local_temp_path = Path(tempfile.gettempdir()) / "food_price_model.pkl"
-    urllib_request.urlretrieve(model_url, local_temp_path)
-    return local_temp_path
+    return model_url
 
 
 def initialize_model():
-    candidate_paths = []
+    last_error = ""
 
     try:
-        downloaded_path = maybe_download_model_from_url()
-        if downloaded_path is not None:
-            candidate_paths.append((downloaded_path, f"downloaded via {MODEL_URL_ENV}"))
+        model_url = maybe_download_model_from_url()
+        if model_url is not None:
+            with urllib_request.urlopen(model_url) as response:
+                loaded_model = pickle.load(response)
+            return loaded_model, "", f"streamed via {MODEL_URL_ENV}"
     except Exception as error:  # pragma: no cover - defensive for runtime env failures
-        return None, str(error), ""
+        last_error = f"Unable to load model from {MODEL_URL_ENV}: {error}"
 
-    candidate_paths.append((MODEL_PATH, "local file"))
+    candidate_paths = [(MODEL_PATH, "local file")]
 
-    last_error = ""
     for candidate_path, source_label in candidate_paths:
         if not candidate_path.exists():
             last_error = f"{candidate_path.name} not found ({source_label})"
