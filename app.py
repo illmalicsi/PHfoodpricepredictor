@@ -6,6 +6,9 @@ from pathlib import Path
 from io import BytesIO
 from datetime import datetime
 import os
+import tempfile
+from urllib import request as urllib_request
+from urllib.parse import urlparse
 
 import matplotlib
 
@@ -19,13 +22,70 @@ MODEL_PATH = Path(__file__).resolve().parent / "food_price_model.pkl"
 HISTORY_SESSION_KEY = "prediction_history"
 MAX_HISTORY_ITEMS = 200
 MODEL_LOAD_ERROR = ""
+MODEL_SOURCE = ""
+MODEL_URL_ENV = "MODEL_URL"
 
-try:
-    with MODEL_PATH.open("rb") as model_file:
-        model = pickle.load(model_file)
-except (FileNotFoundError, pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError) as error:
-    model = None
-    MODEL_LOAD_ERROR = str(error)
+
+def is_git_lfs_pointer(file_path):
+    try:
+        with file_path.open("rb") as model_file:
+            header = model_file.read(128)
+        return header.startswith(b"version https://git-lfs.github.com/spec/v1")
+    except OSError:
+        return False
+
+
+def maybe_download_model_from_url():
+    model_url = os.getenv(MODEL_URL_ENV, "").strip()
+    if not model_url:
+        return None
+
+    parsed_url = urlparse(model_url)
+    if parsed_url.scheme not in {"http", "https"}:
+        raise ValueError(f"{MODEL_URL_ENV} must be an http(s) URL")
+
+    local_temp_path = Path(tempfile.gettempdir()) / "food_price_model.pkl"
+    urllib_request.urlretrieve(model_url, local_temp_path)
+    return local_temp_path
+
+
+def initialize_model():
+    candidate_paths = []
+
+    try:
+        downloaded_path = maybe_download_model_from_url()
+        if downloaded_path is not None:
+            candidate_paths.append((downloaded_path, f"downloaded via {MODEL_URL_ENV}"))
+    except Exception as error:  # pragma: no cover - defensive for runtime env failures
+        return None, str(error), ""
+
+    candidate_paths.append((MODEL_PATH, "local file"))
+
+    last_error = ""
+    for candidate_path, source_label in candidate_paths:
+        if not candidate_path.exists():
+            last_error = f"{candidate_path.name} not found ({source_label})"
+            continue
+
+        if is_git_lfs_pointer(candidate_path):
+            last_error = (
+                f"{candidate_path.name} appears to be a Git LFS pointer ({source_label}), "
+                "not a real pickle binary"
+            )
+            continue
+
+        try:
+            with candidate_path.open("rb") as model_file:
+                loaded_model = pickle.load(model_file)
+            return loaded_model, "", source_label
+        except (pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError) as error:
+            last_error = f"Invalid pickle at {candidate_path.name} ({source_label}): {error}"
+        except OSError as error:
+            last_error = f"Cannot read {candidate_path.name} ({source_label}): {error}"
+
+    return None, last_error, ""
+
+model, MODEL_LOAD_ERROR, MODEL_SOURCE = initialize_model()
 
 CATEGORY_OPTIONS = [
     "cereals and tubers",
@@ -366,7 +426,7 @@ def predict_price_for_inputs(category, commodity, region, year, month):
         if MODEL_LOAD_ERROR:
             raise ValueError(
                 f"Model file is unavailable or invalid ({MODEL_LOAD_ERROR}). "
-                "Ensure food_price_model.pkl is a valid pickle file in deployment."
+                f"Ensure food_price_model.pkl is available or set {MODEL_URL_ENV} to a public/direct model URL."
             )
         raise ValueError("Model file not found. Train the model first using train_model.py")
 
