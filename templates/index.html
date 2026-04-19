@@ -28,6 +28,42 @@
             --radius-lg:     16px;
             --radius-md:     11px;
             --radius-sm:     8px;
+            --nav-bg:        rgba(10,16,23,0.82);
+            --nav-border:    rgba(180,210,235,0.12);
+            --link-hover-bg: rgba(255,255,255,0.04);
+            --option-bg:     #1a2b38;
+            --focus-bg:      #101e2a;
+            --trend-bg:      #0c141c;
+            --table-head-bg: #102231;
+            --table-row-hover:#111e2c;
+            --chip-bg:       rgba(255,255,255,0.04);
+        }
+
+        [data-theme="light"] {
+            --bg:            #f4f7fb;
+            --surface:       #ffffff;
+            --surface-2:     #edf3f9;
+            --surface-3:     rgba(24,50,90,0.04);
+            --border:        rgba(43,74,112,0.18);
+            --border-hover:  rgba(43,74,112,0.36);
+            --text:          #112236;
+            --text-2:        #3f5670;
+            --text-3:        #647c95;
+            --gold:          #a96514;
+            --gold-dim:      rgba(169,101,20,0.11);
+            --teal:          #0c887d;
+            --teal-dim:      rgba(12,136,125,0.12);
+            --red-dim:       rgba(217,44,76,0.1);
+            --red-border:    rgba(217,44,76,0.28);
+            --nav-bg:        rgba(255,255,255,0.88);
+            --nav-border:    rgba(43,74,112,0.2);
+            --link-hover-bg: rgba(12,39,71,0.06);
+            --option-bg:     #ffffff;
+            --focus-bg:      #f6fbff;
+            --trend-bg:      #f2f6fb;
+            --table-head-bg: #eaf1f8;
+            --table-row-hover:#e8eff7;
+            --chip-bg:       rgba(17,34,54,0.05);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -82,9 +118,9 @@
             gap: 16px;
             padding: 14px 18px;
             border-radius: 18px;
-            background: rgba(10, 16, 23, 0.82);
+            background: var(--nav-bg);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(180,210,235,0.12);
+            border: 1px solid var(--nav-border);
             box-shadow: 0 18px 50px rgba(0,0,0,0.22);
         }
 
@@ -116,6 +152,47 @@
             flex-wrap: wrap;
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .theme-toggle,
+        .nav-toggle {
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-2);
+            border-radius: 999px;
+            height: 36px;
+            padding: 0 12px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+
+        .theme-toggle:hover,
+        .nav-toggle:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+            background: var(--link-hover-bg);
+        }
+
+        .nav-toggle {
+            display: none;
+            width: 36px;
+            padding: 0;
+            font-size: 16px;
+            line-height: 1;
+        }
+
         .nav-links a {
             display: inline-flex;
             align-items: center;
@@ -132,8 +209,8 @@
 
         .nav-links a:hover {
             color: var(--text);
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(180,210,235,0.12);
+            background: var(--link-hover-bg);
+            border-color: var(--nav-border);
         }
 
         .nav-links a.primary {
@@ -345,13 +422,13 @@
 
         select { padding-right: 36px; cursor: pointer; }
 
-        select option { background: #1a2b38; color: var(--text); }
+        select option { background: var(--option-bg); color: var(--text); }
 
         select:focus,
         input[type="number"]:focus {
             border-color: rgba(77,216,200,0.5);
             box-shadow: 0 0 0 3px var(--teal-dim);
-            background: #101e2a;
+            background: var(--focus-bg);
         }
 
         select:hover:not(:disabled),
@@ -575,7 +652,7 @@
             display: block;
             border-radius: var(--radius-md);
             border: 1px solid var(--border);
-            background: #0c141c;
+            background: var(--trend-bg);
         }
 
         .trend-empty {
@@ -648,7 +725,7 @@
             gap: 6px;
             padding: 6px 10px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.04);
+            background: var(--chip-bg);
             border: 1px solid var(--border);
             color: var(--text-2);
             font-size: 12px;
@@ -795,7 +872,7 @@
             letter-spacing: 0.1em;
             text-transform: uppercase;
             color: var(--text-3);
-            background: #102231;
+            background: var(--table-head-bg);
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
         }
@@ -810,7 +887,7 @@
         }
 
         .history-table tbody tr:hover td {
-            background: #111e2c;
+            background: var(--table-row-hover);
         }
 
         .history-table .price-cell {
@@ -828,7 +905,28 @@
 
         @media (max-width: 640px) {
             body { padding: 16px 12px 36px; }
-            .app-nav { top: 10px; padding: 12px 14px; flex-direction: column; align-items: flex-start; }
+            .app-nav {
+                top: 10px;
+                padding: 12px 14px;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 10px;
+            }
+            .nav-brand { max-width: calc(100% - 112px); }
+            .nav-brand span { letter-spacing: 0.05em; }
+            .nav-actions { margin-left: auto; }
+            .nav-toggle { display: inline-flex; }
+            .nav-links {
+                width: 100%;
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                padding-top: 4px;
+            }
+            .app-nav.menu-open .nav-links { display: flex; }
+            .nav-links a { width: 100%; justify-content: flex-start; }
+            .theme-toggle { padding: 0 10px; }
             .hero, .panel { padding: 24px 20px; }
             .summary-stage { padding: 22px 20px; }
             .section-shell { padding: 22px 20px; }
@@ -852,7 +950,11 @@
                 <strong>Food Price Predictor</strong>
                 <span>Prediction, trends, and what-if analysis</span>
             </div>
-            <div class="nav-links">
+            <div class="nav-actions">
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light and dark mode">Dark</button>
+                <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-links">☰</button>
+            </div>
+            <div class="nav-links" id="nav-links">
                 <a href="#predictor">Predictor</a>
                 <a href="#simulator-section" class="primary">Simulator</a>
                 <a href="#history">History</a>
@@ -1184,6 +1286,63 @@
         const simulatorDeltaValue = document.getElementById('sim-delta-value');
         const simulatorDeltaNote = document.getElementById('sim-delta-note');
         const simulatorStatus = document.getElementById('sim-status');
+        const appNav = document.querySelector('.app-nav');
+        const navToggle = document.getElementById('nav-toggle');
+        const navLinks = document.getElementById('nav-links');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeStorageKey = 'food-price-theme';
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            if (!themeToggle) {
+                return;
+            }
+
+            const modeLabel = theme === 'light' ? 'Light' : 'Dark';
+            themeToggle.textContent = modeLabel;
+            themeToggle.setAttribute('aria-label', `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`);
+        }
+
+        const storedTheme = localStorage.getItem(themeStorageKey);
+        const defaultTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        applyTheme(storedTheme || defaultTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem(themeStorageKey, nextTheme);
+                applyTheme(nextTheme);
+            });
+        }
+
+        if (appNav && navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                const isOpen = appNav.classList.toggle('menu-open');
+                navToggle.setAttribute('aria-expanded', String(isOpen));
+                navToggle.textContent = isOpen ? '✕' : '☰';
+            });
+
+            navLinks.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (!appNav.classList.contains('menu-open')) {
+                        return;
+                    }
+
+                    appNav.classList.remove('menu-open');
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navToggle.textContent = '☰';
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 640 && appNav.classList.contains('menu-open')) {
+                    appNav.classList.remove('menu-open');
+                    navToggle.setAttribute('aria-expanded', 'false');
+                    navToggle.textContent = '☰';
+                }
+            });
+        }
 
         function populateCommodityOptions(category) {
             const commodities = categoryCommodityMap[category] || [];
