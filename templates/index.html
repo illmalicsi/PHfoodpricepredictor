@@ -72,6 +72,82 @@
             gap: 20px;
         }
 
+        .app-nav {
+            position: sticky;
+            top: 14px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 18px;
+            border-radius: 18px;
+            background: rgba(10, 16, 23, 0.82);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180,210,235,0.12);
+            box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+        }
+
+        .nav-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-brand strong {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.05rem;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .nav-brand span {
+            font-size: 11px;
+            color: var(--text-3);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            color: var(--text-2);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(180,210,235,0.12);
+        }
+
+        .nav-links a.primary {
+            color: var(--gold);
+            background: rgba(240,184,106,0.08);
+            border-color: rgba(240,184,106,0.18);
+        }
+
+        .nav-links a.primary:hover {
+            color: #ffd89f;
+            background: rgba(240,184,106,0.12);
+            border-color: rgba(240,184,106,0.28);
+        }
+
         .top {
             display: grid;
             grid-template-columns: 380px 1fr;
@@ -384,6 +460,247 @@
             color: var(--text-3);
         }
 
+        /* ── COMPARISON ─────────────────────── */
+        .comparison-stage {
+            margin-top: 16px;
+            padding: 22px 20px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            border: 1px solid rgba(180,210,235,0.12);
+            animation: fadeIn 0.4s ease both;
+        }
+
+        .comparison-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .comparison-head h3 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .comparison-head p {
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .comparison-card {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+        }
+
+        .comparison-card span {
+            display: block;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-bottom: 8px;
+        }
+
+        .comparison-card strong {
+            display: block;
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.7rem;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.05;
+        }
+
+        .comparison-card small {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        .comparison-card.accent {
+            border-color: rgba(240,184,106,0.28);
+            background: rgba(240,184,106,0.08);
+        }
+
+        .comparison-card.positive strong { color: var(--teal); }
+
+        .comparison-card.negative strong { color: #ff8a8a; }
+
+        /* ── TREND GRAPH ────────────────────── */
+        .trend-stage {
+            margin-top: 16px;
+            padding: 22px 20px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+            border: 1px solid rgba(180,210,235,0.12);
+            animation: fadeIn 0.45s ease both;
+        }
+
+        .trend-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .trend-head h3 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .trend-head p {
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .trend-graph {
+            width: 100%;
+            display: block;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: #0c141c;
+        }
+
+        .trend-empty {
+            padding: 18px;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-hover);
+            color: var(--text-3);
+            font-size: 13px;
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* ── SIMULATOR ──────────────────────── */
+        .simulator-stage {
+            margin-top: 16px;
+            padding: 22px 20px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, rgba(77,216,200,0.08), rgba(255,255,255,0.015));
+            border: 1px solid rgba(77,216,200,0.16);
+            animation: fadeIn 0.5s ease both;
+        }
+
+        .simulator-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .simulator-head h3 {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .simulator-head p {
+            font-size: 12.5px;
+            color: var(--text-3);
+        }
+
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 14px;
+        }
+
+        .simulator-controls-stack {
+            display: grid;
+            gap: 12px;
+        }
+
+        .simulator-controls,
+        .simulator-results {
+            display: grid;
+            gap: 12px;
+        }
+
+        .simulator-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .simulator-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--text-2);
+            font-size: 12px;
+        }
+
+        .simulator-card {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+        }
+
+        .simulator-card span {
+            display: block;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-bottom: 8px;
+        }
+
+        .simulator-card strong {
+            display: block;
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 1.7rem;
+            font-weight: 400;
+            color: var(--text);
+            line-height: 1.05;
+        }
+
+        .simulator-card small {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
+        .simulator-card.accent {
+            border-color: rgba(77,216,200,0.25);
+            background: rgba(77,216,200,0.08);
+        }
+
+        .simulator-card.positive strong { color: var(--teal); }
+        .simulator-card.negative strong { color: #ff8a8a; }
+
+        .simulator-status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-3);
+        }
+
         /* ── SUMMARY STAGE ───────────────────── */
         .summary-stage {
             background: var(--surface);
@@ -391,6 +708,18 @@
             border-radius: var(--radius-xl);
             padding: 28px 32px;
             animation: fadeIn 0.4s ease both;
+        }
+
+        .section-shell {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 28px 32px;
+            animation: fadeIn 0.4s ease both;
+        }
+
+        .section-shell + .section-shell {
+            margin-top: 0;
         }
 
         .summary-head {
@@ -499,8 +828,10 @@
 
         @media (max-width: 640px) {
             body { padding: 16px 12px 36px; }
+            .app-nav { top: 10px; padding: 12px 14px; flex-direction: column; align-items: flex-start; }
             .hero, .panel { padding: 24px 20px; }
             .summary-stage { padding: 22px 20px; }
+            .section-shell { padding: 22px 20px; }
             .stat-grid { grid-template-columns: 1fr 1fr; }
             .grid-two { grid-template-columns: 1fr; }
             .actions { flex-direction: column; align-items: stretch; }
@@ -516,6 +847,18 @@
 </head>
 <body>
     <main class="page">
+        <nav class="app-nav" aria-label="Primary">
+            <div class="nav-brand">
+                <strong>Food Price Predictor</strong>
+                <span>Prediction, trends, and what-if analysis</span>
+            </div>
+            <div class="nav-links">
+                <a href="#predictor">Predictor</a>
+                <a href="#simulator-section" class="primary">Simulator</a>
+                <a href="#history">History</a>
+            </div>
+        </nav>
+
         <div class="top">
 
             <section class="hero">
@@ -548,7 +891,7 @@
                 </div>
             </section>
 
-            <section class="panel">
+            <section class="panel" id="predictor">
                 <div class="panel-header">
                     <h2>Run prediction</h2>
                     <p class="subtitle">Submit your inputs to get a model-based price estimate.</p>
@@ -596,7 +939,14 @@
                         <div class="grid-two">
                             <div class="field">
                                 <label for="year">Year</label>
-                                <input id="year" type="number" name="year" step="1" placeholder="e.g. 2026" value="{{ selected_year }}" required>
+                                <div class="select-wrap">
+                                    <select id="year" name="year" required>
+                                        <option value="" disabled {% if not selected_year %}selected{% endif %}>Choose a year</option>
+                                        {% for option in year_options %}
+                                            <option value="{{ option }}" {% if selected_year|string == option|string %}selected{% endif %}>{{ option }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
                             <div class="field">
                                 <label for="month">Month</label>
@@ -629,16 +979,153 @@
                 {% if prediction is not none %}
                     <div class="result">
                         <div class="result-label">Predicted price</div>
-                        <div class="result-value">{{ prediction }}</div>
+                        <div class="result-value">₱ {{ prediction }}</div>
                         <div class="result-note">Model output rounded to two decimal places.</div>
                     </div>
                 {% endif %}
-            </section>
 
+                {% if comparison_previous_price is not none and prediction is not none %}
+                    <section class="comparison-stage">
+                        <div class="comparison-head">
+                            <h3>Prediction comparison</h3>
+                            <p>Compared against the latest saved price for the same commodity and region.</p>
+                        </div>
+
+                        <div class="comparison-grid">
+                            <div class="comparison-card">
+                                <span>Past price</span>
+                                <strong>₱ {{ comparison_previous_price }}</strong>
+                                <small>{{ comparison_previous_label }}</small>
+                            </div>
+                            <div class="comparison-card accent">
+                                <span>Predicted price</span>
+                                <strong>₱ {{ prediction }}</strong>
+                                <small>This run</small>
+                            </div>
+                            <div class="comparison-card {% if comparison_difference is not none and comparison_difference < 0 %}negative{% elif comparison_difference is not none and comparison_difference > 0 %}positive{% endif %}">
+                                <span>Difference</span>
+                                <strong>{{ comparison_difference_display }}</strong>
+                                <small>Prediction minus past price</small>
+                            </div>
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% if prediction is not none %}
+                    <section class="trend-stage">
+                        <div class="trend-head">
+                            <h3>Price trend graph</h3>
+                            <p>X-axis: Year. Y-axis: Price. The gold marker shows the current prediction.</p>
+                        </div>
+
+                        {% if trend_chart_data_uri %}
+                            <img class="trend-graph" src="{{ trend_chart_data_uri }}" alt="Price trend graph">
+                        {% else %}
+                            <div class="trend-empty">Not enough matching history yet. Run another prediction for the same commodity and region to build the trend line.</div>
+                        {% endif %}
+                    </section>
+                {% endif %}
+            </section>
         </div>
 
+        {% if prediction is not none %}
+            <section class="section-shell" id="simulator-section">
+                <section class="simulator-stage" id="what-if-simulator" data-baseline-prediction="{{ prediction }}">
+                    <div class="simulator-head">
+                        <h3>What if simulator</h3>
+                        <p>Change category, region, year, month, or commodity to see the prediction update instantly.</p>
+                    </div>
+
+                    <div class="simulator-chip-row">
+                        <div class="simulator-chip">Independent controls</div>
+                        <div class="simulator-chip">Baseline: ₱ {{ prediction }}</div>
+                    </div>
+
+                    <div class="simulator-grid">
+                        <div class="simulator-controls-stack">
+                            <div class="grid-two">
+                                <div class="field">
+                                    <label for="sim-category">What if category</label>
+                                    <div class="select-wrap">
+                                        <select id="sim-category" name="sim-category">
+                                            {% for option in category_options %}
+                                                <option value="{{ option }}" {% if selected_category == option %}selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label for="sim-region">What if region</label>
+                                    <div class="select-wrap">
+                                        <select id="sim-region" name="sim-region">
+                                            {% for option in region_options %}
+                                                <option value="{{ option }}" {% if selected_region == option %}selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid-two">
+                                <div class="field">
+                                    <label for="sim-year">What if year</label>
+                                    <div class="select-wrap">
+                                        <select id="sim-year" name="sim-year">
+                                            <option value="" disabled {% if not selected_year %}selected{% endif %}>Choose a year</option>
+                                            {% for option in year_options %}
+                                                <option value="{{ option }}" {% if selected_year|string == option|string %}selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <label for="sim-month">What if month</label>
+                                    <div class="select-wrap">
+                                        <select id="sim-month" name="sim-month">
+                                            {% for option in month_options %}
+                                                <option value="{{ loop.index }}" {% if selected_month|string == loop.index|string %}selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="sim-commodity">What if commodity</label>
+                                <div class="select-wrap">
+                                    <select id="sim-commodity" name="sim-commodity"></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simulator-results">
+                            <div class="simulator-card">
+                                <span>Baseline price</span>
+                                <strong>₱ {{ prediction }}</strong>
+                                <small>Current prediction</small>
+                            </div>
+                            <div class="simulator-card accent" id="sim-result-card">
+                                <span>What if price</span>
+                                <strong id="sim-result-price">—</strong>
+                                <small id="sim-result-note">Adjust the controls to preview a new outcome.</small>
+                            </div>
+                            <div class="simulator-card" id="sim-delta-card">
+                                <span>Change</span>
+                                <strong id="sim-delta-value">No change yet</strong>
+                                <small id="sim-delta-note">Compared with the baseline above</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="simulator-status" id="sim-status">Ready for a live update.</div>
+                </section>
+            </section>
+        {% endif %}
+
         {% if prediction_history %}
-            <section class="summary-stage">
+            <section class="summary-stage" id="history">
                 <div class="summary-head">
                     <h3>Prediction summary</h3>
                     <div class="summary-tools">
@@ -671,7 +1158,7 @@
                                     <td>{{ item.region }}</td>
                                     <td>{{ item.year }}</td>
                                     <td>{{ item.month }}</td>
-                                    <td class="price-cell">{{ item.predicted_price }}</td>
+                                    <td class="price-cell">₱ {{ item.predicted_price }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -680,13 +1167,23 @@
             </section>
         {% endif %}
 
-    </main>
-
     <script id="category-commodity-map" type="application/json">{{ category_commodity_map | tojson }}</script>
     <script>
         const categoryCommodityMap = JSON.parse(document.getElementById('category-commodity-map').textContent);
         const categorySelect = document.getElementById('category');
         const commoditySelect = document.getElementById('commodity');
+        const simulatorStage = document.getElementById('what-if-simulator');
+        const simulatorCategorySelect = document.getElementById('sim-category');
+        const simulatorCommoditySelect = document.getElementById('sim-commodity');
+        const simulatorRegionSelect = document.getElementById('sim-region');
+        const simulatorYearSelect = document.getElementById('sim-year');
+        const simulatorMonthSelect = document.getElementById('sim-month');
+        const simulatorResultPrice = document.getElementById('sim-result-price');
+        const simulatorResultNote = document.getElementById('sim-result-note');
+        const simulatorDeltaCard = document.getElementById('sim-delta-card');
+        const simulatorDeltaValue = document.getElementById('sim-delta-value');
+        const simulatorDeltaNote = document.getElementById('sim-delta-note');
+        const simulatorStatus = document.getElementById('sim-status');
 
         function populateCommodityOptions(category) {
             const commodities = categoryCommodityMap[category] || [];
@@ -715,11 +1212,146 @@
             commoditySelect.disabled = commodities.length === 0;
         }
 
+        function populateSimulatorCommodityOptions(category, preferredCommodity = '') {
+            if (!simulatorCommoditySelect) {
+                return;
+            }
+
+            const commodities = categoryCommodityMap[category] || [];
+            const previousValue = preferredCommodity || simulatorCommoditySelect.value;
+
+            simulatorCommoditySelect.innerHTML = '';
+
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = 'Choose a commodity';
+            placeholderOption.disabled = true;
+            placeholderOption.selected = true;
+            simulatorCommoditySelect.appendChild(placeholderOption);
+
+            commodities.forEach((commodity) => {
+                const option = document.createElement('option');
+                option.value = commodity;
+                option.textContent = commodity;
+                if (commodity === previousValue) {
+                    option.selected = true;
+                    placeholderOption.selected = false;
+                }
+                simulatorCommoditySelect.appendChild(option);
+            });
+
+            if (commodities.length > 0 && !simulatorCommoditySelect.value) {
+                simulatorCommoditySelect.value = commodities[0];
+            }
+        }
+
+        async function runWhatIfSimulator() {
+            if (!simulatorStage || !simulatorCategorySelect || !simulatorCommoditySelect || !simulatorRegionSelect || !simulatorYearSelect || !simulatorMonthSelect) {
+                return;
+            }
+
+            const baselinePrediction = parseFloat(simulatorStage.dataset.baselinePrediction || '');
+            const category = simulatorCategorySelect.value;
+            const commodity = simulatorCommoditySelect.value;
+            const region = simulatorRegionSelect.value;
+            const year = simulatorYearSelect.value || new Date().getFullYear();
+            const month = simulatorMonthSelect.value;
+
+            if (!category || !commodity || !region || !month) {
+                simulatorStatus.textContent = 'Choose category, commodity, region, year, and month to preview a price.';
+                return;
+            }
+
+            simulatorStatus.textContent = 'Updating live preview...';
+
+            try {
+                const response = await fetch('/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category,
+                        commodity,
+                        region,
+                        year,
+                        month,
+                        baseline_prediction: Number.isFinite(baselinePrediction) ? baselinePrediction : '',
+                    }),
+                });
+
+                const payload = await response.json();
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.error || 'Unable to calculate the what-if price.');
+                }
+
+                simulatorResultPrice.textContent = `₱ ${Number(payload.prediction).toFixed(2)}`;
+                simulatorResultNote.textContent = `${commodity} in ${simulatorMonthSelect.options[simulatorMonthSelect.selectedIndex].text} (${region}, ${year})`;
+
+                if (payload.delta === null || typeof payload.delta === 'undefined') {
+                    simulatorDeltaValue.textContent = 'No baseline';
+                    simulatorDeltaNote.textContent = 'Compare after you make a baseline prediction.';
+                    simulatorDeltaCard.classList.remove('positive', 'negative');
+                } else {
+                    simulatorDeltaValue.textContent = payload.delta_display;
+                    simulatorDeltaNote.textContent = 'Compared with the baseline prediction.';
+                    simulatorDeltaCard.classList.toggle('positive', payload.delta > 0);
+                    simulatorDeltaCard.classList.toggle('negative', payload.delta < 0);
+                }
+
+                simulatorStatus.textContent = `Live preview updated for ${payload.month_name}.`;
+            } catch (error) {
+                simulatorStatus.textContent = error.message;
+            }
+        }
+
         categorySelect.addEventListener('change', (event) => {
             populateCommodityOptions(event.target.value);
         });
 
         populateCommodityOptions(categorySelect.value);
+
+        if (simulatorStage && simulatorCategorySelect && simulatorCommoditySelect && simulatorRegionSelect && simulatorYearSelect && simulatorMonthSelect) {
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+
+            if (!simulatorCategorySelect.value && simulatorCategorySelect.options.length > 0) {
+                simulatorCategorySelect.value = simulatorCategorySelect.options[0].value;
+            }
+
+            if (!simulatorRegionSelect.value && simulatorRegionSelect.options.length > 0) {
+                simulatorRegionSelect.value = simulatorRegionSelect.options[0].value;
+            }
+
+            if (!simulatorYearSelect.value) {
+                simulatorYearSelect.value = String(currentYear);
+            }
+
+            if (!simulatorMonthSelect.value && simulatorMonthSelect.options.length > 0) {
+                const preferredMonth = String(currentMonth);
+                const monthOption = Array.from(simulatorMonthSelect.options).find((option) => option.value === preferredMonth);
+                if (monthOption) {
+                    simulatorMonthSelect.value = preferredMonth;
+                }
+            }
+
+            populateSimulatorCommodityOptions(simulatorCategorySelect.value, simulatorCommoditySelect.value);
+
+            if (!simulatorCommoditySelect.value && simulatorCommoditySelect.options.length > 1) {
+                simulatorCommoditySelect.value = simulatorCommoditySelect.options[1].value;
+            }
+
+            simulatorCategorySelect.addEventListener('change', () => {
+                populateSimulatorCommodityOptions(simulatorCategorySelect.value);
+                runWhatIfSimulator();
+            });
+            simulatorCommoditySelect.addEventListener('change', runWhatIfSimulator);
+            simulatorRegionSelect.addEventListener('change', runWhatIfSimulator);
+            simulatorYearSelect.addEventListener('change', runWhatIfSimulator);
+            simulatorMonthSelect.addEventListener('change', runWhatIfSimulator);
+            runWhatIfSimulator();
+        }
     </script>
 </body>
 </html>

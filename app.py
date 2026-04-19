@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, session, send_file
+from flask import Flask, jsonify, render_template, request, session, send_file
+import base64
 import pickle
 import pandas as pd
 from pathlib import Path
@@ -6,10 +7,15 @@ from io import BytesIO
 from datetime import datetime
 import os
 
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 
-MODEL_PATH = Path("food_price_model.pkl")
+MODEL_PATH = Path(__file__).resolve().parent / "food_price_model.pkl"
 HISTORY_SESSION_KEY = "prediction_history"
 MAX_HISTORY_ITEMS = 200
 
@@ -272,6 +278,8 @@ MONTH_OPTIONS = [
     "December",
 ]
 
+YEAR_OPTIONS = list(range(2015, 2036))
+
 
 def get_month_name(month_number):
     try:
@@ -294,6 +302,7 @@ def render_home(**context):
         category_commodity_map=CATEGORY_COMMODITY_MAP,
         region_options=REGION_OPTIONS,
         month_options=MONTH_OPTIONS,
+        year_options=YEAR_OPTIONS,
         **context,
     )
 
@@ -313,7 +322,11 @@ def append_prediction_history(entry):
 
 
 def parse_int_field(form_data, field_name):
-    raw_value = form_data.get(field_name, "").strip()
+    raw_value = form_data.get(field_name, "")
+    if raw_value is None:
+        raw_value = ""
+
+    raw_value = str(raw_value).strip()
     if not raw_value:
         raise ValueError(f"{field_name.capitalize()} is required")
     try:
@@ -328,11 +341,109 @@ def get_required_field(form_data, field_name):
         raise ValueError(f"{field_name.capitalize()} is required")
     return value
 
+
+def build_prediction_input(category, commodity, region, year, month):
+    latitude, longitude = REGION_COORDINATES[region]
+    market = REGION_MARKET_MAP[region]
+    return pd.DataFrame([
+        {
+            "admin1": region,
+            "category": category,
+            "commodity": commodity,
+            "market": market,
+            "latitude": latitude,
+            "longitude": longitude,
+            "year": year,
+            "month": month,
+        }
+    ])
+
+
+def predict_price_for_inputs(category, commodity, region, year, month):
+    if model is None:
+        raise ValueError("Model file not found. Train the model first using train_model.py")
+
+    input_data = build_prediction_input(category, commodity, region, year, month)
+    return round(model.predict(input_data)[0], 2)
+
+
+def get_latest_comparison_price(history, category, commodity, region):
+    for entry in reversed(history):
+        if (
+            entry.get("category") == category
+            and entry.get("commodity") == commodity
+            and entry.get("region") == region
+        ):
+            try:
+                return float(entry.get("predicted_price", "")), entry
+            except (TypeError, ValueError):
+                continue
+    return None, None
+
+
+def build_trend_chart_data_uri(history, category, commodity, region, prediction_year=None, prediction_value=None):
+    matching_points = []
+    for entry in history:
+        if (
+            entry.get("category") != category
+            or entry.get("commodity") != commodity
+            or entry.get("region") != region
+        ):
+            continue
+
+        try:
+            year_value = int(entry.get("year"))
+            price_value = float(entry.get("predicted_price"))
+        except (TypeError, ValueError):
+            continue
+
+        matching_points.append((year_value, price_value))
+
+    if prediction_year is not None and prediction_value is not None:
+        matching_points.append((int(prediction_year), float(prediction_value)))
+
+    if not matching_points:
+        return None
+
+    frame = pd.DataFrame(matching_points, columns=["year", "price"])
+    frame = frame.groupby("year", as_index=False)["price"].mean().sort_values("year")
+
+    figure, axis = plt.subplots(figsize=(7.2, 3.6), dpi=160)
+    axis.plot(frame["year"], frame["price"], color="#4dd8c8", linewidth=2.4, marker="o", markersize=5)
+
+    if prediction_year is not None and prediction_value is not None:
+        axis.scatter([int(prediction_year)], [float(prediction_value)], color="#f0b86a", s=90, zorder=5, marker="*", edgecolors="#1a0e00", linewidths=0.6)
+        axis.axvline(int(prediction_year), color="#f0b86a", linestyle="--", linewidth=1, alpha=0.35)
+
+    axis.set_title(f"Price trend for {commodity}", fontsize=12, color="#e8f2fa", pad=10)
+    axis.set_xlabel("Year", color="#8fa8be")
+    axis.set_ylabel("Price", color="#8fa8be")
+    axis.tick_params(axis="x", colors="#8fa8be")
+    axis.tick_params(axis="y", colors="#8fa8be")
+    axis.grid(True, linestyle="--", linewidth=0.6, alpha=0.18)
+    axis.set_facecolor("#0e1720")
+    figure.patch.set_facecolor("#0e1720")
+
+    for spine in axis.spines.values():
+        spine.set_color("#2a3a49")
+
+    buffer = BytesIO()
+    figure.tight_layout()
+    figure.savefig(buffer, format="png", bbox_inches="tight", facecolor=figure.get_facecolor())
+    plt.close(figure)
+    buffer.seek(0)
+    return "data:image/png;base64," + base64.b64encode(buffer.read()).decode("ascii")
+
 @app.route('/')
 def home():
     return render_home(
         prediction=None,
         error_message=None,
+        comparison_previous_price=None,
+        comparison_previous_label="",
+        comparison_difference=None,
+        comparison_difference_display="",
+        trend_chart_data_uri=None,
         selected_category="",
         selected_commodity="",
         selected_region="",
@@ -349,6 +460,7 @@ def predict():
     region = request.form.get('region', '')
     year = request.form.get('year', '')
     month = request.form.get('month', '')
+    prediction_history = get_prediction_history()
 
     try:
         if model is None:
@@ -372,23 +484,32 @@ def predict():
         if month < 1 or month > 12:
             raise ValueError("Month must be between 1 and 12")
 
-        latitude, longitude = REGION_COORDINATES[region]
-        market = REGION_MARKET_MAP[region]
-
-        input_data = pd.DataFrame([{
-            'admin1': region,
-            'category': category,
-            'commodity': commodity,
-            'market': market,
-            'latitude': latitude,
-            'longitude': longitude,
-            'year': year,
-            'month': month
-        }])
-
-        prediction = model.predict(input_data)[0]
-        prediction_value = round(prediction, 2)
+        prediction_value = predict_price_for_inputs(category, commodity, region, year, month)
         selected_month_name = get_month_name(month)
+        previous_price, previous_entry = get_latest_comparison_price(
+            prediction_history,
+            category,
+            commodity,
+            region,
+        )
+        if previous_price is not None:
+            comparison_difference = round(prediction_value - previous_price, 2)
+            comparison_difference_display = f"{'+' if comparison_difference >= 0 else '-'}₱ {abs(comparison_difference):.2f}"
+            comparison_previous_label = f"{previous_entry.get('month', '')} {previous_entry.get('year', '')}".strip()
+        else:
+            comparison_difference = None
+            comparison_difference_display = ""
+            comparison_previous_label = ""
+
+        trend_chart_data_uri = build_trend_chart_data_uri(
+            prediction_history,
+            category,
+            commodity,
+            region,
+            prediction_year=year,
+            prediction_value=prediction_value,
+        )
+
         append_prediction_history(
             {
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -405,10 +526,20 @@ def predict():
         prediction_value = None
         selected_month_name = get_month_name(month)
         error_message = str(error)
+        previous_price = None
+        comparison_difference = None
+        comparison_difference_display = ""
+        comparison_previous_label = ""
+        trend_chart_data_uri = None
 
     return render_home(
         prediction=prediction_value,
         error_message=error_message,
+        comparison_previous_price=previous_price,
+        comparison_previous_label=comparison_previous_label,
+        comparison_difference=comparison_difference,
+        comparison_difference_display=comparison_difference_display,
+        trend_chart_data_uri=trend_chart_data_uri,
         selected_category=category,
         selected_commodity=commodity,
         selected_region=region,
@@ -417,6 +548,45 @@ def predict():
         selected_month_name=selected_month_name,
         prediction_history=get_prediction_history(),
     )
+
+
+@app.route('/simulate', methods=['POST'])
+def simulate():
+    payload = request.get_json(silent=True) or request.form
+
+    try:
+        category = get_required_field(payload, 'category')
+        commodity = get_required_field(payload, 'commodity')
+        region = get_required_field(payload, 'region')
+        year = parse_int_field(payload, 'year')
+        month = parse_int_field(payload, 'month')
+        baseline_prediction_raw = payload.get('baseline_prediction', '')
+        baseline_prediction = float(baseline_prediction_raw) if str(baseline_prediction_raw).strip() else None
+
+        if region not in REGION_COORDINATES or region not in REGION_MARKET_MAP:
+            raise ValueError("Selected region is not supported")
+
+        if category not in CATEGORY_COMMODITY_MAP:
+            raise ValueError("Selected category is not supported")
+
+        if commodity not in CATEGORY_COMMODITY_MAP[category]:
+            raise ValueError("Selected commodity does not match selected category")
+
+        if month < 1 or month > 12:
+            raise ValueError("Month must be between 1 and 12")
+
+        simulated_prediction = predict_price_for_inputs(category, commodity, region, year, month)
+        delta = None if baseline_prediction is None else round(simulated_prediction - baseline_prediction, 2)
+
+        return jsonify(
+            success=True,
+            prediction=simulated_prediction,
+            month_name=get_month_name(month),
+            delta=delta,
+            delta_display=(None if delta is None else f"{'+' if delta >= 0 else '-'}₱ {abs(delta):.2f}"),
+        )
+    except ValueError as error:
+        return jsonify(success=False, error=str(error)), 400
 
 
 @app.route('/export-predictions')
@@ -432,6 +602,7 @@ def export_predictions():
             selected_year="",
             selected_month="",
             selected_month_name="",
+            trend_chart_data_uri=None,
             prediction_history=[],
         )
 
