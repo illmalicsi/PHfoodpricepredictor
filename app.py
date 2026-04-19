@@ -536,9 +536,6 @@ def predict():
     prediction_history = get_prediction_history()
 
     try:
-        if model is None:
-            raise ValueError("Model file not found. Train the model first using train_model.py")
-
         category = get_required_field(request.form, 'category')
         commodity = get_required_field(request.form, 'commodity')
         region = get_required_field(request.form, 'region')
